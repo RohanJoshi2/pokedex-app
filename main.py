@@ -2,7 +2,6 @@ import pygame
 import dex  # Assuming you have a module named dex for your Pokedex logic
 import string
 import time
-import ctypes
 
 # Initialize Pygame
 pygame.init()
