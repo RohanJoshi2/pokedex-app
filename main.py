@@ -160,9 +160,9 @@ while True:
                                     update_font_size()
                                     update_ui_elements()
                                 elif sub_event.type == pygame.MOUSEBUTTONDOWN:
-                                    if le_buuton.collidepoint(sub_event.pos):
+                                    if le_buuton.collidepoint(sub_event.pos) and page < 6:
                                         page += 1
-                                    if el_butoon.collidepoint(sub_event.pos):
+                                    if el_butoon.collidepoint(sub_event.pos) and page > 1:
                                         page -= 1
                                     if la_button.collidepoint(sub_event.pos) and page == 6:
                                         break
@@ -202,17 +202,24 @@ while True:
                                     window.blit(line, get_relative_pos(0.5 - line.get_width() / (2 * screen_width), curPos / screen_height))
                                     curPos += hoit
                             
-                            pygame.draw.rect(window, [255, 255, 255], le_buuton)
-                            window.blit(render_text("  --->  ", [0, 0, 0]), le_buuton.topleft)
+                            if page < 6:
+                                pygame.draw.rect(window, [255, 255, 255], le_buuton)
+                                window.blit(render_text("  --->  ", [0, 0, 0]), le_buuton.topleft)
                             
-                            pygame.draw.rect(window, [255, 255, 255], el_butoon)
-                            window.blit(render_text("  <---  ", [0, 0, 0]), el_butoon.topleft)
+                            if page > 1:
+                                pygame.draw.rect(window, [255, 255, 255], el_butoon)
+                                window.blit(render_text("  <---  ", [0, 0, 0]), el_butoon.topleft)
                             
                             if page == 6:
                                 pygame.draw.rect(window, [255, 255, 255], la_button)
                                 window.blit(render_text("  Done  ", [0, 0, 0]), la_button.topleft)
                             
                             pygame.display.update()
+
+                            if sub_event.type == pygame.MOUSEBUTTONDOWN and la_button.collidepoint(sub_event.pos) and page == 6:
+                                break
+
+                        searchTyped = ""
                     else:
                         error_text = render_text("Error, pokemon not found", [255, 0, 0])
                         window.blit(error_text, get_relative_pos(0.5 - error_text.get_width() / (2 * screen_width), 0.7))
