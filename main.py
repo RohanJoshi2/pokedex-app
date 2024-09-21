@@ -18,39 +18,47 @@ pygame.display.set_caption("Pokedex Search")
 
 # Initialize font
 pygame.font.init()
-font = pygame.font.SysFont("roboto", 20)
+base_font_size = 20
+font = pygame.font.SysFont("roboto", base_font_size)
 
-# Render static texts
-text = font.render("Enter the name of the Pokemon you are looking for:", True, [255, 255, 255])
-search_text = font.render("Search: ", True, [255, 255, 255])
-surch = font.render(" Search: Crabominable ", True, [255, 255, 255])
-buuton = font.render("  --->  ", True, [0, 0, 0])
-butoon = font.render("  <---  ", True, [0, 0, 0])
-button = font.render("  Done  ", True, [0, 0, 0])
+# Function to update font size based on window dimensions
+def update_font_size():
+    global font, base_font_size
+    font_size = int(min(screen_width, screen_height) / 40)
+    if font_size != base_font_size:
+        base_font_size = font_size
+        font = pygame.font.SysFont("roboto", base_font_size)
+
+# Function to render text
+def render_text(text, color=[255, 255, 255]):
+    return font.render(text, True, color)
+
+# Function to get relative position
+def get_relative_pos(x_percent, y_percent):
+    return (int(screen_width * x_percent), int(screen_height * y_percent))
+
+# Function to create button
+def create_button(text, x_percent, y_percent, padding=10):
+    text_surface = render_text(text, [0, 0, 0])
+    button_rect = pygame.Rect(
+        get_relative_pos(x_percent, y_percent),
+        (text_surface.get_width() + padding * 2, text_surface.get_height() + padding * 2)
+    )
+    return button_rect, text_surface
 
 # Set up hitboxes and buttons
-hitbox = pygame.Rect(
-    (screen_width / 2 - surch.get_width() / 2, screen_height / 2 - surch.get_height() / 2),
-    (surch.get_width(), surch.get_height())
-)
+def update_ui_elements():
+    global hitbox, le_buuton, el_butoon, la_button
+    search_text = render_text(" Search: Crabominable ")
+    hitbox = pygame.Rect(
+        get_relative_pos(0.5 - search_text.get_width() / (2 * screen_width), 0.5 - search_text.get_height() / (2 * screen_height)),
+        (search_text.get_width(), search_text.get_height())
+    )
+    le_buuton, _ = create_button("  --->  ", 0.9, 0.9)
+    el_butoon, _ = create_button("  <---  ", 0.1, 0.9)
+    la_button, _ = create_button("  Done  ", 0.5, 0.9)
 
-buuton_width = buuton.get_width()
-buuton_height = buuton.get_height()
-
-le_buuton = pygame.Rect(
-    (screen_width - buuton_width * 1.12, screen_height - buuton_height * 2.3),
-    (buuton_width, buuton_height)
-)
-
-el_butoon = pygame.Rect(
-    (buuton_width * 1.12, screen_height - buuton_height * 2.3),
-    (buuton_width, buuton_height)
-)
-
-la_button = pygame.Rect(
-    (screen_width / 2 - button.get_width() / 2, screen_height - buuton_height * 2.3),
-    (button.get_width(), buuton_height)
-)
+update_ui_elements()
 
 # Text input settings
 search = " Search: "
@@ -62,301 +70,174 @@ KEYS = {}
 clock = pygame.time.Clock()
 backspaceTimer = 0
 
-
+# Original helper functions (preserved from your code)
 def pageBasic(info):
-  National_Number = font.render("National Number: " + str(info["NationalNum"]), True,  [255, 255, 255])
-  Type = font.render("Type: " + str(info["Type"]), True,  [255, 255, 255])
-  Species = font.render("Species: " + str(info["Species"]), True,  [255, 255, 255])
-  Height = font.render("Height: " + str(info["Height"]), True,  [255, 255, 255])
-  Weight = font.render("Weight: " + str(info["Weight"]), True,  [255, 255, 255])
-  Abilities = font.render("Possible Abilities: " + str(info["Abilities"]), True,  [255, 255, 255])
-  Hidden_Ablility = font.render("Hidden Ability: " + str(info["HiddenAbility"]), True,  [255, 255, 255])
-  basic_info = [National_Number, Type, Species, Height, Weight, Abilities, Hidden_Ablility]
-  return basic_info
+    return [
+        render_text(f"National Number: {info['NationalNum']}"),
+        render_text(f"Type: {info['Type']}"),
+        render_text(f"Species: {info['Species']}"),
+        render_text(f"Height: {info['Height']}"),
+        render_text(f"Weight: {info['Weight']}"),
+        render_text(f"Possible Abilities: {info['Abilities']}"),
+        render_text(f"Hidden Ability: {info['HiddenAbility']}")
+    ]
 
 def pageTraining(info):
-  EV_Yield = font.render("EV Yield: " + str(info["evYield"]), True,  [255, 255, 255])
-  Catch_Rate = font.render("Catch Rate: " + str(info["CatchRate"]), True,  [255, 255, 255])
-  Base_Frienship = font.render("Base Friendship: " + str(info["BaseFriendship"]), True,  [255, 255, 255])
-  Base_Experience = font.render("Base Experience: " + str(info["BaseExp"]), True,  [255, 255, 255])
-  training_info = [EV_Yield, Catch_Rate, Base_Frienship, Base_Experience]
-  return training_info
+    return [
+        render_text(f"EV Yield: {info['evYield']}"),
+        render_text(f"Catch Rate: {info['CatchRate']}"),
+        render_text(f"Base Friendship: {info['BaseFriendship']}"),
+        render_text(f"Base Experience: {info['BaseExp']}")
+    ]
 
 def pageBreeding(info):
-  Egg_Cycles = font.render("Egg Cycles: " + str(info["EggCycles"]), True,  [255, 255, 255])
-  Egg_Groups = font.render("Egg Groups: " + str(info["EggGroups"]), True,  [255, 255, 255])
-  Gender_Chance = font.render("Gender Chance: " + str(info["Gender"]), True,  [255, 255, 255])
-  breeding_info = [Egg_Cycles, Egg_Groups, Gender_Chance]
-  return breeding_info
+    return [
+        render_text(f"Egg Cycles: {info['EggCycles']}"),
+        render_text(f"Egg Groups: {info['EggGroups']}"),
+        render_text(f"Gender Chance: {info['Gender']}")
+    ]
 
 def pageMinStats(info):
-  Min_HP = font.render("Minimum HP: " + str(info["MinStats"][0]), True,  [255, 255, 255])
-  Min_Attack = font.render("Minimum Attack: " + str(info["MinStats"][1]), True,  [255, 255, 255])
-  Min_Defense = font.render("Minimum Defense: " + str(info["MinStats"][2]), True,  [255, 255, 255])
-  Min_Special_Attack = font.render("Minimum Special Attack: " + str(info["MinStats"][3]), True,  [255, 255, 255])
-  Min_Special_Defense = font.render("Minimum Special Attack: " + str(info["MinStats"][4]), True,  [255, 255, 255])
-  Min_Speed = font.render("Minimum Speed: " + str(info["MinStats"][5]), True,  [255, 255, 255])
-  minStats_info = [Min_HP, Min_Attack, Min_Defense, Min_Special_Attack, Min_Special_Defense, Min_Speed]
-  return minStats_info
+    return [
+        render_text(f"Minimum HP: {info['MinStats'][0]}"),
+        render_text(f"Minimum Attack: {info['MinStats'][1]}"),
+        render_text(f"Minimum Defense: {info['MinStats'][2]}"),
+        render_text(f"Minimum Special Attack: {info['MinStats'][3]}"),
+        render_text(f"Minimum Special Defense: {info['MinStats'][4]}"),
+        render_text(f"Minimum Speed: {info['MinStats'][5]}")
+    ]
 
 def pageBaseStats(info):
-  Base_HP = font.render("Base HP: " + str(info["BaseStats"][0]), True,  [255, 255, 255])
-  Base_Attack = font.render("Base Attack: " + str(info["BaseStats"][1]), True,  [255, 255, 255])
-  Base_Defense = font.render("Base Defense: " + str(info["BaseStats"][2]), True,  [255, 255, 255])
-  Base_Special_Attack = font.render("Base Special Attack: " + str(info["BaseStats"][3]), True,  [255, 255, 255])
-  Base_Special_Defense = font.render("Base Special Attack: " + str(info["BaseStats"][4]), True,  [255, 255, 255])
-  Base_Speed = font.render("Base Speed: " + str(info["BaseStats"][5]), True,  [255, 255, 255])
-  BaseStats_info = [Base_HP, Base_Attack, Base_Defense, Base_Special_Attack, Base_Special_Defense, Base_Speed]
-  return BaseStats_info
+    return [
+        render_text(f"Base HP: {info['BaseStats'][0]}"),
+        render_text(f"Base Attack: {info['BaseStats'][1]}"),
+        render_text(f"Base Defense: {info['BaseStats'][2]}"),
+        render_text(f"Base Special Attack: {info['BaseStats'][3]}"),
+        render_text(f"Base Special Defense: {info['BaseStats'][4]}"),
+        render_text(f"Base Speed: {info['BaseStats'][5]}")
+    ]
 
 def pageMaxStats(info):
-  Max_HP = font.render("Maximum HP: " + str(info["MaxStats"][0]), True,  [255, 255, 255])
-  Max_Attack = font.render("Maximum Attack: " + str(info["MaxStats"][1]), True,  [255, 255, 255])
-  Max_Defense = font.render("Maximum Defense: " + str(info["MaxStats"][2]), True,  [255, 255, 255])
-  Max_Special_Attack = font.render("Maximum Special Attack: " + str(info["MaxStats"][3]), True,  [255, 255, 255])
-  Max_Special_Defense = font.render("Maximum Special Attack: " + str(info["MaxStats"][4]), True,  [255, 255, 255])
-  Max_Speed = font.render("Maximum Speed: " + str(info["MaxStats"][5]), True,  [255, 255, 255])
-  MaxStats_info = [Max_HP, Max_Attack, Max_Defense, Max_Special_Attack, Max_Special_Defense, Max_Speed]
-  return MaxStats_info
-  
-clock = pygame.time.Clock()
-backspaceTimer = 0
+    return [
+        render_text(f"Maximum HP: {info['MaxStats'][0]}"),
+        render_text(f"Maximum Attack: {info['MaxStats'][1]}"),
+        render_text(f"Maximum Defense: {info['MaxStats'][2]}"),
+        render_text(f"Maximum Special Attack: {info['MaxStats'][3]}"),
+        render_text(f"Maximum Special Defense: {info['MaxStats'][4]}"),
+        render_text(f"Maximum Speed: {info['MaxStats'][5]}")
+    ]
+
+# Main game loop
 while True:
-  clock.tick()
-  backspaceTimer += clock.get_time()
-  q = pygame.event.get(pygame.QUIT)
-  if q:
-    exit(0)
-
-  keyEvent = pygame.event.get(pygame.KEYDOWN)
-  eventKey = pygame.event.get(pygame.KEYUP)
-
-  if textInputFocused and KEYS.get("backspace") == True and backspaceTimer > 150:
-    backspaceTimer = 0
-    searchTyped = searchTyped[:-1]
-  if textInputFocused and keyEvent:
-    KEYS[pygame.key.name(keyEvent[0].key)] = True
-    if pygame.key.name(keyEvent[0].key) in string.ascii_letters:
-      searchTyped += (pygame.key.name(keyEvent[0].key))
-    elif pygame.key.name(keyEvent[0].key) == "space":
-      searchTyped += " "
-    elif keyEvent[0].key == pygame.K_RETURN:
-      soop = dex.get_soop(searchTyped)
-      info = dex.get_pokemon_info(soop)
-      if isinstance(info, dict):
-        basicpage = pageBasic(info)
-        NationalNum = basicpage[0]
-        Type = basicpage[1]
-        Species = basicpage[2]
-        Height = basicpage[3]
-        Weight = basicpage[4]
-        Abilities = basicpage[5]
-        HiddenAbility = basicpage[6]
-
-        trainingpage = pageTraining(info)
-        evYield = trainingpage[0]
-        CatchRate = trainingpage[1]
-        BaseFriendship = trainingpage[2]
-        BaseExp = trainingpage[3]
-
-        breedingpage = pageBreeding(info)
-        EggCycles = breedingpage[0]
-        EggGroups = breedingpage[1]
-        Gender = breedingpage[2]
-
-        minstatspage = pageMinStats(info)
-        MinHP = minstatspage[0]
-        MinAttack = minstatspage[1]
-        MinDefense = minstatspage[2]
-        MinSpecialAttack = minstatspage[3]
-        MinSpecialDefense = minstatspage[4]
-        MinSpeed = minstatspage[5]
-
-        basestatspage = pageBaseStats(info)
-        BaseHP = basestatspage[0]
-        BaseAttack = basestatspage[1]
-        BaseDefense = basestatspage[2]
-        BaseSpecialAttack = basestatspage[3]
-        BaseSpecialDefense = basestatspage[4]
-        BaseSpeed = basestatspage[5]
-
-        maxstatspage = pageMaxStats(info)
-        MaxHP = maxstatspage[0]
-        MaxAttack = maxstatspage[1]
-        MaxDefense = maxstatspage[2]
-        MaxSpecialAttack = maxstatspage[3]
-        MaxSpecialDefense = maxstatspage[4]
-        MaxSpeed = maxstatspage[5]
-        
-
-        
-
-        page = 1
-        while True:
-          if pygame.event.get(pygame.MOUSEBUTTONDOWN):
-            if le_buuton.collidepoint(pygame.mouse.get_pos()):
-              page += 1
-            if el_butoon.collidepoint(pygame.mouse.get_pos()):
-              page -= 1
-            if la_button.collidepoint(pygame.mouse.get_pos()) and page == 6:
-              break
-          if page > 6:
-            page = 6
-          if page < 1:
-            page = 1
-          pygame.draw.rect(window, [0, 0, 0],[0, 0, screen_width, screen_height])
-          
-          curPos = 3.5*NationalNum.get_height()
-          hoit = NationalNum.get_height()
-          if page < 1:
-            page = 1
-          if page == 1:
-            window.blit(NationalNum, [((screen_width / 2) - (NationalNum.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(Type, [((screen_width / 2) - (Type.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(Species, [((screen_width / 2) - (Species.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(Height, [((screen_width / 2) -(Height.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(Weight, [((screen_width / 2) -(Weight.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(Abilities, [((screen_width / 2) -(Abilities.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(HiddenAbility, [((screen_width / 2) -(HiddenAbility.get_width()/2)), curPos])
-            pygame.draw.rect(window, [255, 255, 255], le_buuton)
-            
-            window.blit(buuton, [((screen_width) - (buuton.get_width() * 1.12)), ((screen_height) - (buuton.get_height()*2.3))])
-            
-          if page == 2:
-            window.blit(evYield, [((screen_width / 2) - (evYield.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(CatchRate, [((screen_width / 2) - (CatchRate.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(BaseFriendship, [((screen_width / 2) - (BaseFriendship.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(BaseExp, [((screen_width / 2) -(Height.get_width()/2)), curPos])
-            
-            pygame.draw.rect(window, [255, 255, 255], le_buuton)
-            window.blit(buuton, [((screen_width) - (buuton.get_width() * 1.12)), ((screen_height) - (buuton.get_height()*2.3))])
-            
-            pygame.draw.rect(window, [255, 255, 255], el_butoon)
-            window.blit(butoon, [((buuton.get_width() * 1.12)), ((screen_height) -(buuton.get_height()*2.3))])
-            
-          if page == 3:
-            window.blit(EggCycles, [((screen_width / 2) - (EggCycles.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(EggGroups, [((screen_width / 2) - (EggGroups.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(Gender, [((screen_width / 2) - (Gender.get_width()/2)), curPos])
-            curPos += hoit
-            
-
-            pygame.draw.rect(window, [255, 255, 255], le_buuton)
-            window.blit(buuton, [((screen_width) - (buuton.get_width() * 1.12)), ((screen_height) - (buuton.get_height()*2.3))])
-            
-            pygame.draw.rect(window, [255, 255, 255], el_butoon)
-            window.blit(butoon, [((buuton.get_width() * 1.12)), ((screen_height) -(buuton.get_height()*2.3))])
-            
-          if page == 4:
-            window.blit(BaseHP, [((screen_width / 2) - (BaseHP.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(BaseAttack, [((screen_width / 2) - (BaseAttack.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(BaseDefense, [((screen_width / 2) - (BaseDefense.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(BaseSpecialAttack, [((screen_width / 2) -(BaseSpecialAttack.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(BaseSpecialDefense, [((screen_width / 2) -(BaseSpecialDefense.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(BaseSpeed, [((screen_width / 2) -(BaseSpeed.get_width()/2)), curPos])
-            
-            pygame.draw.rect(window, [255, 255, 255], el_butoon)
-            window.blit(butoon, [((buuton.get_width() * 1.12)), ((screen_height) -(buuton.get_height()*2.3))])
-
-            pygame.draw.rect(window, [255, 255, 255], le_buuton)
-            window.blit(buuton, [((screen_width) - (buuton.get_width() * 1.12)), ((screen_height) - (buuton.get_height()*2.3))])
-            
-          if page == 5:
-            window.blit(MaxHP, [((screen_width / 2) - (MaxHP.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MaxAttack, [((screen_width / 2) - (MaxAttack.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MaxDefense, [((screen_width / 2) - (MaxDefense.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MaxSpecialAttack, [((screen_width / 2) -(MaxSpecialAttack.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MaxSpecialDefense, [((screen_width / 2) -(MaxSpecialDefense.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MaxSpeed, [((screen_width / 2) -(MaxSpeed.get_width()/2)), curPos])
-            
-            pygame.draw.rect(window, [255, 255, 255], el_butoon)
-            window.blit(butoon, [((buuton.get_width() * 1.12)), ((screen_height) -(buuton.get_height()*2.3))])
-            
-            pygame.draw.rect(window, [255, 255, 255], le_buuton)
-            window.blit(buuton, [((screen_width) - (buuton.get_width() * 1.12)), ((screen_height) - (buuton.get_height()*2.3))])
-            
-          if page == 6:
-            window.blit(MinHP, [((screen_width / 2) - (MinHP.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MinAttack, [((screen_width / 2) - (MinAttack.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MinDefense, [((screen_width / 2) - (MinDefense.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MinSpecialAttack, [((screen_width / 2) -(MinSpecialAttack.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MinSpecialDefense, [((screen_width / 2) -(MinSpecialDefense.get_width()/2)), curPos])
-            curPos += hoit
-            window.blit(MinSpeed, [((screen_width / 2) -(MinSpeed.get_width()/2)), curPos])
-            
-            pygame.draw.rect(window, [255, 255, 255], el_butoon)
-            window.blit(butoon, [((buuton.get_width() * 1.12)), ((screen_height) -(buuton.get_height()*2.3))])
-            
-            pygame.draw.rect(window, [255, 255, 255], la_button)
-            window.blit(button, [((screen_width / 2) - (buuton.get_width() / 2)), ((screen_height) - (buuton.get_height()*2.3))])
-            
-          if page > 6:
-            page = 6
-          
-          
-          
-          pygame.display.update()
-      else:
-        while True:
-          pygame.draw.rect(window, [0, 0, 0],
-                           [0, 0, screen_width, screen_height])
-          err = font.render("Error, pokemon not found", True, [255, 255, 255])
-          window.blit(err,
-                      [((screen_width / 2) - (err.get_width() / 2)),
-                       ((screen_height / 2) - (err.get_height() / 2))])
-          pygame.display.update()
-          if pygame.event.get(pygame.MOUSEBUTTONDOWN):
-            break
-  elif textInputFocused and eventKey:
-    KEYS[pygame.key.name(eventKey[0].key)] = False
- 
+    clock.tick(60)
+    backspaceTimer += clock.get_time()
     
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            exit(0)
+        elif event.type == pygame.VIDEORESIZE:
+            screen_width, screen_height = event.size
+            window = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+            update_font_size()
+            update_ui_elements()
+        elif event.type == pygame.KEYDOWN:
+            KEYS[pygame.key.name(event.key)] = True
+            if textInputFocused:
+                if event.key == pygame.K_BACKSPACE:
+                    searchTyped = searchTyped[:-1]
+                elif event.key == pygame.K_RETURN:
+                    soop = dex.get_soop(searchTyped)
+                    info = dex.get_pokemon_info(soop)
+                    if isinstance(info, dict):
+                        page = 1
+                        while True:
+                            for sub_event in pygame.event.get():
+                                if sub_event.type == pygame.QUIT:
+                                    exit(0)
+                                elif sub_event.type == pygame.VIDEORESIZE:
+                                    screen_width, screen_height = sub_event.size
+                                    window = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
+                                    update_font_size()
+                                    update_ui_elements()
+                                elif sub_event.type == pygame.MOUSEBUTTONDOWN:
+                                    if le_buuton.collidepoint(sub_event.pos):
+                                        page += 1
+                                    if el_butoon.collidepoint(sub_event.pos):
+                                        page -= 1
+                                    if la_button.collidepoint(sub_event.pos) and page == 6:
+                                        break
+                            
+                            if page > 6:
+                                page = 6
+                            if page < 1:
+                                page = 1
+                            
+                            window.fill((0, 0, 0))
+                            
+                            curPos = 3.5 * render_text("").get_height()
+                            hoit = render_text("").get_height()
+                            
+                            if page == 1:
+                                for line in pageBasic(info):
+                                    window.blit(line, get_relative_pos(0.5 - line.get_width() / (2 * screen_width), curPos / screen_height))
+                                    curPos += hoit
+                            elif page == 2:
+                                for line in pageTraining(info):
+                                    window.blit(line, get_relative_pos(0.5 - line.get_width() / (2 * screen_width), curPos / screen_height))
+                                    curPos += hoit
+                            elif page == 3:
+                                for line in pageBreeding(info):
+                                    window.blit(line, get_relative_pos(0.5 - line.get_width() / (2 * screen_width), curPos / screen_height))
+                                    curPos += hoit
+                            elif page == 4:
+                                for line in pageBaseStats(info):
+                                    window.blit(line, get_relative_pos(0.5 - line.get_width() / (2 * screen_width), curPos / screen_height))
+                                    curPos += hoit
+                            elif page == 5:
+                                for line in pageMaxStats(info):
+                                    window.blit(line, get_relative_pos(0.5 - line.get_width() / (2 * screen_width), curPos / screen_height))
+                                    curPos += hoit
+                            elif page == 6:
+                                for line in pageMinStats(info):
+                                    window.blit(line, get_relative_pos(0.5 - line.get_width() / (2 * screen_width), curPos / screen_height))
+                                    curPos += hoit
+                            
+                            pygame.draw.rect(window, [255, 255, 255], le_buuton)
+                            window.blit(render_text("  --->  ", [0, 0, 0]), le_buuton.topleft)
+                            
+                            pygame.draw.rect(window, [255, 255, 255], el_butoon)
+                            window.blit(render_text("  <---  ", [0, 0, 0]), el_butoon.topleft)
+                            
+                            if page == 6:
+                                pygame.draw.rect(window, [255, 255, 255], la_button)
+                                window.blit(render_text("  Done  ", [0, 0, 0]), la_button.topleft)
+                            
+                            pygame.display.update()
+                    else:
+                        error_text = render_text("Error, pokemon not found", [255, 0, 0])
+                        window.blit(error_text, get_relative_pos(0.5 - error_text.get_width() / (2 * screen_width), 0.7))
+                        pygame.display.flip()
+                        pygame.time.wait(2000)
+                elif event.unicode.isprintable():
+                    searchTyped += event.unicode
+        elif event.type == pygame.KEYUP:
+            KEYS[pygame.key.name(event.key)] = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if hitbox.collidepoint(event.pos):
+                textInputFocused = True
+            else:
+                textInputFocused = False
 
-  if pygame.event.get(pygame.MOUSEBUTTONDOWN):
-    if hitbox.collidepoint(pygame.mouse.get_pos()):
-      textInputFocused = True
-    else:
-      textInputFocused = False
+    # Clear the screen
+    window.fill((0, 0, 0))
 
-  textsearch = font.render(search + searchTyped + " ", True, [0, 0, 0])
+    # Draw search box
+    pygame.draw.rect(window, [255, 255, 255], hitbox)
+    textsearch = render_text(search + searchTyped + " ", [0, 0, 0])
+    window.blit(textsearch, hitbox.topleft)
 
-  pygame.draw.rect(window, [0, 0, 0],
-                   [0, 0, screen_width, screen_height])
+    # Draw instructions
+    text = render_text("Enter the name of the Pokemon you are looking for:")
+    window.blit(text, get_relative_pos(0.5 - text.get_width() / (2 * screen_width), 0.25))
 
-  pygame.draw.rect(window, [255, 255, 255], hitbox)
-
-  window.blit(textsearch, [
-      ((screen_width / 2) - (textsearch.get_width() / 2)),
-      ((screen_height / 2) - (textsearch.get_height() / 2)) 
-  ])
-
-  window.blit(
-      text,
-      [screen_width / 2 - text.get_width() / 2, screen_height / 4])
-
-  pygame.display.flip()
+    pygame.display.flip()
